@@ -10,10 +10,10 @@
 // matching the old 1.20.1 cell). This is the ONE cell that compiles shared_common at --release 17,
 // so it also proves shared_common's Java 17 language-level compatibility. -Xlint:all + zero warnings.
 
+// correctet versions for github actions compat
 plugins {
     id("fabric-loom") version "1.14.10"
-// correctet version for github actions
-    id("com.gradleup.shadow") version "8.3.5"
+    id("com.gradleup.shadow") version "8.3.11"
 }
 
 allprojects {
