@@ -717,6 +717,8 @@ def has_voxy(mcver, loader):
     v = _parse(mcver)
     if v[0] >= 26:
         return True
+    if v == (1, 20, 1):
+        return True  # UNOFFICIAL LOCAL PATCH: target the community 1.20.1 voxy backport
     return v >= (1, 21, 11)
 
 
