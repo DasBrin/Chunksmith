@@ -12,11 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 21 (for Gradle/toolchains)
+      - name: Set up JDK (17 for toolchain, 21 for Gradle)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: |
+            17
+            21
 
       - name: Set up Python (for compat.py / cog)
         uses: actions/setup-python@v5
