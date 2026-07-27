@@ -1,0 +1,61 @@
+name: Build Chunksmith (Fabric 1.20.1, + voxy)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ voxy-1201-patch ]
+
+jobs:
+  build:
+    runs-on: windows-latest   # cog-gen.ps1 is PowerShell; Windows runners have pwsh built in
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (for Gradle/toolchains)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Python (for compat.py / cog)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install cogapp
+        run: pip install cogapp
+
+      - name: Download the voxy 1.20.1 backport jar
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path libs | Out-Null
+          Invoke-WebRequest `
+            -Uri "https://github.com/mazenzai/voxy/releases/download/Voxy/voxy-0.2.13-alpha.jar" `
+            -OutFile "libs/voxy-0.2.13-alpha.jar"
+
+      - name: Download the Distant Horizons jar (LGPL, freely redistributable)
+        shell: pwsh
+        run: |
+          # build.gradle.kts already expects this exact local path/filename - unchanged from stock.
+          # DhClientLevel (the one class we compile against) is Minecraft-version-agnostic, so any
+          # recent Fabric build works; asking Modrinth's API for the newest Fabric/1.20.1 build.
+          $resp = Invoke-RestMethod -Uri 'https://api.modrinth.com/v2/project/distanthorizons/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.20.1%22%5D'
+          $version = $resp | Sort-Object -Property date_published -Descending | Select-Object -First 1
+          $file = $version.files | Where-Object { $_.primary } | Select-Object -First 1
+          Invoke-WebRequest -Uri $file.url -OutFile "libs/DistantHorizons-3.2.0-b-1.21.1.jar"
+
+      - name: Regenerate Cog sources for Fabric/1.20.1
+        shell: pwsh
+        run: ./scripts/cog-gen.ps1 -Cell Fabric/1.20.1 -McVer 1.20.1 -Loader Fabric
+
+      - name: Build
+        shell: pwsh
+        working-directory: Fabric/1.20.1
+        run: ./gradlew build --no-daemon
+
+      - name: Upload built jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: chunksmith-1.20.1-voxy-and-dh
+          path: Fabric/1.20.1/build/libs/*.jar
