@@ -11,7 +11,8 @@
 // so it also proves shared_common's Java 17 language-level compatibility. -Xlint:all + zero warnings.
 
 plugins {
-    id("fabric-loom") version "1.12.7"
+    id("fabric-loom") version "1.14.10"
+// correctet version for github actions
     id("com.gradleup.shadow") version "8.3.5"
 }
 
